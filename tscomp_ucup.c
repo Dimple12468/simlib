@@ -22,7 +22,7 @@
 int   min_terms, max_terms, incr_terms, num_terms, num_responses,
       num_responses_required, term;
 float mean_think, mean_service, quantum, swap;
-FILE  *infile, *outfile;
+FILE  *infile, *outfile, *inputdebug;
 
 /* Declare non-simlib functions. */
 
@@ -39,7 +39,8 @@ int main()  /* Main function. */
     /* Open input and output files. */
 
     infile  = fopen("tscomp.in",  "r");
-    outfile = fopen("tscomp.out", "w");
+    outfile = fopen("tscomp_ucup.out", "w");
+    inputdebug = fopen("tscomp_ucup.log", "w");
 
     /* Read input parameters. */
 
@@ -78,7 +79,7 @@ int main()  /* Main function. */
 
         /* Set maxatr = max(maximum number of attributes per record, 4) */
 
-        maxatr = 6;  /* NEVER SET maxatr TO BE SMALLER THAN 4. */
+        maxatr = 4;  /* NEVER SET maxatr TO BE SMALLER THAN 4. */
 
         /* Initialize the non-simlib statistical counter. */
 
@@ -104,9 +105,6 @@ int main()  /* Main function. */
                 case EVENT_ARRIVAL:
                     arrive();
                     break;
-                // case EVENT_END_CPU_RUN:
-                //     end_CPU_run();
-                //     break;
                 case EVENT_END_CPU_RUN_1:
                     end_CPU_run_ucup(1);
                     break;
@@ -130,6 +128,7 @@ int main()  /* Main function. */
 
     fclose(infile);
     fclose(outfile);
+    fclose(inputdebug);
 
     return 0;
 }
@@ -146,7 +145,6 @@ void arrive(void)  /* Event function for arrival of job at CPU after think
                total service time since the job is just arriving). */
 
     transfer[1] = sim_time;
-    // transfer[2] = expon(mean_service, STREAM_SERVICE);
     
     /* edit by ucup */
     transfer[2] = uniform(0.0, 2*mean_service, STREAM_SERVICE);
@@ -167,11 +165,14 @@ void arrive(void)  /* Event function for arrival of job at CPU after think
     /* edit by ucup */
     // printf("t2ucup: %.3f\n", t2ucup);
     if (t2ucup <= 10.0 && list_size[LIST_CPU_1] == 0) {
+        fprintf(inputdebug, "%.3f\t%d\n", t2ucup,1);
         start_CPU_run_ucup(1);
     } else if (t2ucup > 10.0 && t2ucup <= 40.0 && list_size[LIST_CPU_2] == 0) {
         start_CPU_run_ucup(2);
+        fprintf(inputdebug, "%.3f\t%d\n", t2ucup,2);
     } else if (t2ucup > 40.0 && list_size[LIST_CPU_3] == 0) {
         start_CPU_run_ucup(3);
+        fprintf(inputdebug, "%.3f\t%d\n", t2ucup,3);
     }
     /* end of editing */
 }
@@ -231,37 +232,6 @@ void start_CPU_run_ucup(int id)
     
 }
 
-// void start_CPU_run(void)  /* Non-event function to start a CPU run of a job. */
-// {
-//     float run_time;
-
-//     /* Remove the first job from the queue. */
-
-//     list_remove(FIRST, LIST_QUEUE);
-
-//     /* Determine the CPU time for this pass, including the swap time. */
-
-//     if (quantum < transfer[2])
-//         run_time = quantum + swap;
-//     else
-//         run_time = transfer[2] + swap;
-
-//      Decrement remaining CPU time by a full quantum.  (If less than a full
-//        quantum is needed, this attribute becomes negative.  This indicates that
-//        the job, after exiting the CPU for the current pass, will be done and is
-//        to be sent back to its terminal.) 
-
-//     transfer[2] -= quantum;
-
-//     /* Place the job into the CPU. */
-
-//     list_file(FIRST, LIST_CPU);
-
-//     /* Schedule the end of the CPU run. */
-
-//     event_schedule(sim_time + run_time, EVENT_END_CPU_RUN);
-// }
-
 void end_CPU_run_ucup(int id)
 {
     /* Remove the job from the CPU. */
@@ -288,17 +258,18 @@ void end_CPU_run_ucup(int id)
 
     /* Check to see whether this job requires more CPU time. */
 
+    float t2ucup = transfer[2];
     if (transfer[2] > 0.0) {
 
         /* This job requires more CPU time, so place it at the end of the queue
            and start the first job in the queue. */
 
         list_file(LAST, LIST_QUEUE);
-        if (transfer[2] <= 10.0 && list_size[LIST_CPU_1] == 0) {
+        if (t2ucup <= 10.0 && list_size[LIST_CPU_1] == 0) {
             start_CPU_run_ucup(1);
-        } else if (transfer[2] > 10.0 && transfer[2] <= 40.0 && list_size[LIST_CPU_2] == 0) {
+        } else if (t2ucup > 10.0 && t2ucup <= 40.0 && list_size[LIST_CPU_2] == 0) {
             start_CPU_run_ucup(2);
-        } else if (transfer[2] > 40.0 && list_size[LIST_CPU_3] == 0) {
+        } else if (t2ucup > 40.0 && list_size[LIST_CPU_3] == 0) {
             start_CPU_run_ucup(3);
         }
     }
