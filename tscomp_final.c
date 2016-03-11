@@ -30,8 +30,8 @@ FILE  *infile, *outfile;
 
 void arrive(void);
 // void start_CPU_run(void);
-void start_CPU_run_ucup(int id);
-void end_CPU_run_ucup(int id);
+void start_CPU_run_simul(int id);
+void end_CPU_run_simul(int id);
 // void end_CPU_run(void);
 void report(void);
 
@@ -102,13 +102,13 @@ int main()  /* Main function. */
                     arrive();
                     break;
                 case EVENT_END_CPU_RUN_1:
-                    end_CPU_run_ucup(1);
+                    end_CPU_run_simul(1);
                     break;
                 case EVENT_END_CPU_RUN_2:
-                    end_CPU_run_ucup(2);
+                    end_CPU_run_simul(2);
                     break;
                 case EVENT_END_CPU_RUN_3:
-                    end_CPU_run_ucup(3);
+                    end_CPU_run_simul(3);
                     break;
                 case EVENT_END_SIMULATION:
                     report();
@@ -161,15 +161,15 @@ void arrive(void)  /* Event function for arrival of job at CPU after think
     /*  If the CPU is idle, check Queue on each CPU then start a CPU run. */
 
     if (list_size[LIST_CPU_1] == 0 && list_size[LIST_QUEUE_1] > 0) {
-        start_CPU_run_ucup(1);
+        start_CPU_run_simul(1);
     } else if (list_size[LIST_CPU_2] == 0 && list_size[LIST_QUEUE_2] > 0) {
-        start_CPU_run_ucup(2);
+        start_CPU_run_simul(2);
     } else if (list_size[LIST_CPU_3] == 0 && list_size[LIST_QUEUE_3] > 0) {
-        start_CPU_run_ucup(3);
+        start_CPU_run_simul(3);
     }
 }
 
-void start_CPU_run_ucup(int id) 
+void start_CPU_run_simul(int id) 
 {
     float run_time;
 
@@ -211,7 +211,7 @@ void start_CPU_run_ucup(int id)
     
 }
 
-void end_CPU_run_ucup(int id)
+void end_CPU_run_simul(int id)
 {
     /* Remove the job from the CPU. */
 
@@ -233,11 +233,11 @@ void end_CPU_run_ucup(int id)
         /*  If the CPU is idle, check Queue on each CPU then start a CPU run. */
         
         if (list_size[LIST_CPU_1] == 0 && list_size[LIST_QUEUE_1] > 0) {
-            start_CPU_run_ucup(1);
+            start_CPU_run_simul(1);
         } else if (list_size[LIST_CPU_2] == 0 && list_size[LIST_QUEUE_2] > 0) {
-            start_CPU_run_ucup(2);
+            start_CPU_run_simul(2);
         } else if (list_size[LIST_CPU_3] == 0 && list_size[LIST_QUEUE_3] > 0) {
-            start_CPU_run_ucup(3);
+            start_CPU_run_simul(3);
         }
     }
 
@@ -277,11 +277,11 @@ void end_CPU_run_ucup(int id)
                another job. */
 
             if (list_size[LIST_QUEUE_1] > 0) {
-                start_CPU_run_ucup(1);
+                start_CPU_run_simul(1);
             } else if (list_size[LIST_QUEUE_2] > 0) {
-                start_CPU_run_ucup(2);
+                start_CPU_run_simul(2);
             }else if (list_size[LIST_QUEUE_3] > 0) {
-                start_CPU_run_ucup(3);
+                start_CPU_run_simul(3);
             }
             
         }
